@@ -36,15 +36,19 @@ while True:
         # imgZ = img.shape[2]
         if cv2.waitKey(1) == ord(' '):
             currentTime = time.time()
-            if currentTime - startTime >= 0.2:
+            if currentTime - startTime >= 0.1:
                 startTime = currentTime
+                hand_label = max(0, (hand_index-300)//100)
 
                 if result.multi_hand_landmarks:
                     for handLms in result.multi_hand_landmarks:
                         for i, lm in enumerate(handLms.landmark):
-                            data_list.append([hand_index,i,lm.x,lm.y,lm.z])
+                            data_list.append([hand_index,i,lm.x,lm.y,lm.z,hand_label])
                             # print(i, lm.x, lm.y, lm.z)
                         hand_index += 1
+                if hand_index % 100 == 0:
+                    print(f"Captured {hand_index} frames. Pausing for 2 seconds...")
+                    time.sleep(2)
 
         if result.multi_hand_landmarks:
             for handLms in result.multi_hand_landmarks:
@@ -56,14 +60,4 @@ while True:
         # cv2.putText(img, f"FPS : {int(fps)}", (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 3)
         cv2.putText(img, f"DATA NUMBER : {hand_index}", (30, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 3)
         cv2.imshow('img', img)
-
-    if cv2.waitKey(1) == ord('q'):
-        break
-
-# dataframe store the gesture data
-columns = ['hand_index', 'landmark_index', 'x', 'y', 'z']
-dataset_df = pd.DataFrame(data_list, columns=columns)
-if os.path.isfile('GestureDataset.csv'):
-    dataset_df.to_csv('GestureDataset.csv', mode='a', index=False, header=False)
-else:
     dataset_df.to_csv('GestureDataset.csv', mode='w', index=False, header=True)
